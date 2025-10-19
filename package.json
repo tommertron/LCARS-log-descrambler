@@ -1,0 +1,29 @@
+{
+  "name": "data_descrambler",
+  "version": "1.0.0",
+  "description": "A single-page LCARS-styled terminal for Star Trek Adventures sessions. The interface loads `log.html`, scrambles the contents, and reveals words as operators enter approved code phrases.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tommertron/LCARS-log-descrambler.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tommertron/LCARS-log-descrambler/issues"
+  },
+  "homepage": "https://github.com/tommertron/LCARS-log-descrambler#readme",
+  "dependencies": {
+    "jsdom": "^27.0.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.28.3",
+    "@babel/plugin-proposal-optional-chaining": "^7.21.0",
+    "@babel/plugin-transform-optional-chaining": "^7.27.1",
+    "@babel/preset-env": "^7.28.3"
+  }
+}

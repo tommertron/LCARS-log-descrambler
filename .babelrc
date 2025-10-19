@@ -1,0 +1,12 @@
+{
+  "presets": [
+    ["@babel/preset-env", {
+      "targets": {"browsers": [">0.5%", "last 5 versions", "Firefox ESR"]},
+      "useBuiltIns": false
+    }]
+  ],
+  "plugins": [
+    "@babel/plugin-transform-optional-chaining",
+    "@babel/plugin-proposal-optional-chaining"
+  ]
+}

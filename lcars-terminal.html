@@ -75,6 +75,92 @@
 			min-width: 8rem;
 			font-size: 1rem;
 		}
+		.hidden {
+			display: none !important;
+		}
+		.admin-modal {
+			position: fixed;
+			inset: 0;
+			background: rgba(0, 0, 0, 0.68);
+			display: none;
+			align-items: center;
+			justify-content: center;
+			z-index: 1000;
+		}
+		.admin-modal.is-visible {
+			display: flex;
+		}
+		.admin-panel {
+			width: min(720px, 92vw);
+			max-height: 90vh;
+			overflow-y: auto;
+			background: rgba(8, 8, 20, 0.95);
+			border: var(--panel-border);
+			border-radius: 1rem;
+			padding: 1.5rem;
+			box-shadow: 0 0 24px rgba(0, 0, 0, 0.6);
+			color: var(--space-white);
+		}
+		.admin-panel h2, .admin-panel h3 {
+			margin-top: 0;
+			letter-spacing: 0.12em;
+			text-transform: uppercase;
+		}
+		.admin-section {
+			margin-bottom: 1.5rem;
+			border-top: 1px solid rgba(255, 255, 255, 0.12);
+			padding-top: 1rem;
+		}
+		.admin-section:first-of-type {
+			border-top: none;
+			padding-top: 0;
+		}
+		.admin-field {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.75rem;
+			margin-bottom: 0.75rem;
+			align-items: center;
+		}
+		.admin-field label {
+			min-width: 170px;
+			font-size: 0.9rem;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+			color: var(--meta-data-color);
+		}
+		.admin-field input, .admin-field textarea, .admin-field select {
+			flex: 1;
+			min-width: 220px;
+			padding: 0.5rem 0.65rem;
+			border: var(--panel-border);
+			border-radius: 0.6rem;
+			background: rgba(0, 0, 0, 0.35);
+			color: var(--space-white);
+			font-size: 0.95rem;
+			letter-spacing: 0.04em;
+		}
+		.admin-field textarea {
+			min-height: 200px;
+			resize: vertical;
+		}
+		.admin-actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.75rem;
+			align-items: center;
+		}
+		.admin-close {
+			margin-left: auto;
+		}
+		.status-inline-warning {
+			color: var(--panel-5-color);
+			font-size: 0.85rem;
+			letter-spacing: 0.05em;
+		}
+		#attempts-remaining {
+			margin: -0.4rem 0 0;
+		}
 		@media (max-width: 760px) {
 			.terminal-display {
 				min-height: 18rem;
@@ -434,11 +520,13 @@
 				<div class="terminal-controls buttons">
 					<input id="codeword-input" class="terminal-input" type="text" placeholder="Enter codeword">
 					<button id="decrypt-button" class="lcars-button button-gold">DECRYPT</button>
+					<button id="admin-button" class="lcars-button button-blue">ADMINISTRATOR MODE</button>
 				</div>
 				<h2>Secure Channel // Stardate 94112.3</h2>
 				<h3 class="font-gold">Access Level: Restricted</h3>
 				<div class="terminal-wrapper">
 					<div id="status-indicator" class="terminal-status">Status: Awaiting input</div>
+					<div id="attempts-remaining" class="status-inline-warning hidden"></div>
 					<div id="log-display" class="terminal-display">Initializing log buffer…</div>
 				</div>
 
@@ -452,250 +540,110 @@
 		</div>
 	</section>	
 
-	<script>
-		(() => {
-			const logDisplay = document.getElementById('log-display');
-			const statusIndicator = document.getElementById('status-indicator');
-			const decryptButton = document.getElementById('decrypt-button');
-			const codeInput = document.getElementById('codeword-input');
-			const audioBeep = document.getElementById('audio2');
+	<div id="admin-modal" class="admin-modal">
+		<div class="admin-panel">
+			<div id="admin-login-view">
+				<h2>Administrator Access</h2>
+				<p>Enter the authorized password to modify terminal settings.</p>
+				<form id="admin-login-form">
+					<div class="admin-field">
+						<label for="admin-password-input">Access Password</label>
+						<input id="admin-password-input" type="password" autocomplete="current-password" required>
+					</div>
+					<div class="admin-actions">
+						<button type="submit" class="lcars-button button-gold">ENTER</button>
+						<button type="button" class="lcars-button button-red admin-close">CANCEL</button>
+					</div>
+					<p id="admin-login-error" class="status-inline-warning hidden">Access denied. Please try again.</p>
+				</form>
+			</div>
+			<div id="admin-dashboard" class="hidden">
+				<div class="admin-actions">
+					<h2>Administrator Controls</h2>
+					<button type="button" class="lcars-button button-red admin-close">EXIT</button>
+				</div>
+				<p id="admin-status-message" class="status-inline-warning hidden"></p>
+				<div class="admin-section">
+					<h3>Security Settings</h3>
+					<form id="admin-attempts-form">
+						<div class="admin-field">
+							<label for="admin-attempt-limit">Guess Threshold</label>
+							<input id="admin-attempt-limit" type="number" min="1" required>
+						</div>
+						<div class="admin-actions">
+							<button type="submit" class="lcars-button button-gold">Update Threshold</button>
+						</div>
+					</form>
+					<form id="admin-password-form">
+						<div class="admin-field">
+							<label for="admin-password-new">New Password</label>
+							<input id="admin-password-new" type="password" autocomplete="new-password">
+						</div>
+						<div class="admin-field">
+							<label for="admin-password-confirm">Confirm Password</label>
+							<input id="admin-password-confirm" type="password" autocomplete="new-password">
+						</div>
+						<div class="admin-actions">
+							<button type="submit" class="lcars-button button-gold">Update Password</button>
+						</div>
+					</form>
+				</div>
+				<div class="admin-section">
+					<h3>Code Phrases</h3>
+					<form id="admin-codes-form">
+						<div class="admin-field">
+							<label for="admin-code-quarter">25% Decryption</label>
+							<input id="admin-code-quarter" type="text" required>
+						</div>
+						<div class="admin-field">
+							<label for="admin-code-half">50% Decryption</label>
+							<input id="admin-code-half" type="text" required>
+						</div>
+						<div class="admin-field">
+							<label for="admin-code-full">Full Decryption</label>
+							<input id="admin-code-full" type="text" required>
+						</div>
+						<div class="admin-field">
+							<label for="admin-code-wipe">Wipe Log</label>
+							<input id="admin-code-wipe" type="text" required>
+						</div>
+						<div class="admin-actions">
+							<button type="submit" class="lcars-button button-gold">Save Code Phrases</button>
+						</div>
+					</form>
+				</div>
+				<div class="admin-section">
+					<h3>Log Entries</h3>
+					<form id="admin-log-form">
+						<input type="hidden" id="admin-log-id">
+						<div class="admin-field">
+							<label for="admin-log-select">Choose Entry</label>
+							<select id="admin-log-select"></select>
+						</div>
+						<div class="admin-actions">
+							<button type="button" id="admin-log-new" class="lcars-button button-blue">New Entry</button>
+							<button type="button" id="admin-log-set-active" class="lcars-button button-gold">Set Active</button>
+							<button type="button" id="admin-log-delete" class="lcars-button button-red">Delete Entry</button>
+						</div>
+						<div class="admin-field">
+							<label for="admin-log-title">Entry Title</label>
+							<input id="admin-log-title" type="text" placeholder="e.g. Databank Log: R7-0412.33">
+						</div>
+						<div class="admin-field">
+							<label for="admin-log-content">Entry Content</label>
+							<textarea id="admin-log-content" placeholder="Paste or compose the log markup or plain text"></textarea>
+						</div>
+						<div class="admin-actions">
+							<button type="submit" class="lcars-button button-gold">Save Entry</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+		<script src="assets/terminal.js"></script>
 
-			const playBeep = () => {
-				if (!audioBeep) {
-					return;
-				}
-				audioBeep.pause();
-				audioBeep.currentTime = 0;
-				audioBeep.play().catch(() => {});
-			};
 
-
-			const scrambleSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=<>?/|{}[]';
-			const syncWordClasses = () => {
-				const wordNodes = logDisplay.querySelectorAll('.terminal-word');
-				wordNodes.forEach((node) => {
-					const wordIdx = Number(node.dataset.wordIndex);
-					if (Number.isNaN(wordIdx)) {
-						return;
-					}
-					if (wordRevealed[wordIdx]) {
-						node.classList.remove('is-hidden');
-					} else {
-						node.classList.add('is-hidden');
-					}
-				});
-			};
-			const wordCharPattern = /[A-Za-z0-9]/;
-			let tokens = [];
-			let tokenWordIndexMap = [];
-			let wordOriginals = [];
-			let scrambledWords = [];
-			let wordRevealed = [];
-			let wipeEngaged = false;
-			const usedCodes = new Set();
-
-			const setStatus = (message, { isError = false } = {}) => {
-				statusIndicator.textContent = message;
-				statusIndicator.classList.toggle('is-error', isError);
-			};
-
-			const scrambleToken = (token) => Array.from(token).map((char) => (wordCharPattern.test(char) ? scrambleSet.charAt(Math.floor(Math.random() * scrambleSet.length)) : char)).join('');
-
-			const refreshScrambles = () => {
-				tokenWordIndexMap.forEach((wordIdx) => {
-					if (wordIdx === -1) {
-						return;
-					}
-					if (!wordRevealed[wordIdx]) {
-						scrambledWords[wordIdx] = scrambleToken(wordOriginals[wordIdx]);
-					}
-				});
-			};
-
-			const renderText = () => {
-				const assembled = tokens.map((token, idx) => {
-					const wordIdx = tokenWordIndexMap[idx];
-					if (wordIdx === -1) {
-						return token;
-					}
-					const isRevealed = wordRevealed[wordIdx];
-					const displayText = isRevealed ? wordOriginals[wordIdx] : scrambledWords[wordIdx];
-					const hiddenClass = isRevealed ? '' : ' is-hidden';
-					return `<span class="terminal-word${hiddenClass}" data-word-index="${wordIdx}">${displayText}</span>`;
-				}).join('');
-				logDisplay.innerHTML = assembled;
-				syncWordClasses();
-			};
-
-			const updateStatus = () => {
-				const total = wordOriginals.length;
-				if (total === 0) {
-					setStatus('Status: No readable data');
-					return;
-				}
-				const recovered = wordRevealed.reduce((sum, revealed) => sum + (revealed ? 1 : 0), 0);
-				if (recovered >= total) {
-					setStatus('Status: Log decrypted');
-					decryptButton.disabled = true;
-					decryptButton.textContent = 'DECRYPTED';
-				} else {
-					const percent = Math.round((recovered / total) * 100);
-					setStatus(`Status: ${percent}% signal integrity`);
-					decryptButton.disabled = false;
-					decryptButton.textContent = 'DECRYPT';
-				}
-			};
-
-			const buildTokens = (text) => {
-				const parts = [];
-				let lastIndex = 0;
-				const regex = /\s+/g;
-				let match;
-				while ((match = regex.exec(text)) !== null) {
-					if (match.index > lastIndex) {
-						parts.push(text.slice(lastIndex, match.index));
-					}
-					parts.push(match[0]);
-					lastIndex = match.index + match[0].length;
-				}
-				if (lastIndex < text.length) {
-					parts.push(text.slice(lastIndex));
-				}
-				return parts;
-			};
-
-			const handleDecrypt = () => {
-				playBeep();
-				if (wipeEngaged) {
-					return;
-				}
-				const code = codeInput.value.trim().toLowerCase();
-
-				const consumeCode = () => {
-					if (usedCodes.has(code)) {
-						setStatus('error - algorithm already engaged', { isError: true });
-						return false;
-					}
-					usedCodes.add(code);
-					return true;
-				};
-
-				if (code === 'sfstfu') {
-					if (!consumeCode()) {
-						return;
-					}
-					engageWipe();
-					return;
-				}
-
-				let fraction;
-				if (code === 'warpgrind') {
-					fraction = 0.25;
-				} else if (code === 'phaserfury') {
-					fraction = 0.5;
-				} else if (code === 'holobollocks') {
-					fraction = 1;
-				} else {
-					setStatus('error - incorrect decryption algorithm', { isError: true });
-					return;
-				}
-
-				if (!consumeCode()) {
-					return;
-				}
-
-				const hiddenWordIndices = wordRevealed
-					.map((revealed, idx) => (!revealed ? idx : null))
-					.filter((idx) => idx !== null);
-
-				if (hiddenWordIndices.length === 0) {
-					updateStatus();
-					return;
-				}
-
-				const totalWords = wordOriginals.length;
-				const quota = Math.max(1, Math.round(totalWords * fraction));
-				const revealCount = Math.min(quota, hiddenWordIndices.length);
-
-				for (let i = hiddenWordIndices.length - 1; i > 0; i -= 1) {
-					const j = Math.floor(Math.random() * (i + 1));
-					[hiddenWordIndices[i], hiddenWordIndices[j]] = [hiddenWordIndices[j], hiddenWordIndices[i]];
-				}
-
-				for (let i = 0; i < revealCount; i += 1) {
-					const wordIdx = hiddenWordIndices[i];
-					wordRevealed[wordIdx] = true;
-				}
-
-				refreshScrambles();
-				renderText();
-				syncWordClasses();
-				updateStatus();
-			};
-
-			const engageWipe = () => {
-				wipeEngaged = true;
-				decryptButton.disabled = true;
-				codeInput.disabled = true;
-				logDisplay.classList.add('is-corrupted');
-				logDisplay.textContent = 'LOG CORRUPTED - UNRECOVERABLE';
-				setStatus('Status: Signal lost');
-			};
-
-			const initialiseTerminal = (text) => {
-				const normalised = text.replace(/\r?\n/g, '\n');
-				tokens = buildTokens(normalised);
-				tokenWordIndexMap = new Array(tokens.length).fill(-1);
-				wordOriginals = [];
-				scrambledWords = [];
-				wordRevealed = [];
-
-				let wordCounter = 0;
-				tokens.forEach((token, idx) => {
-					if (!/\s/.test(token)) {
-						tokenWordIndexMap[idx] = wordCounter;
-						wordOriginals.push(token);
-						scrambledWords.push(scrambleToken(token));
-						wordRevealed.push(false);
-						wordCounter += 1;
-					}
-				});
-
-				wipeEngaged = false;
-				decryptButton.disabled = false;
-				decryptButton.textContent = 'DECRYPT';
-				codeInput.disabled = false;
-				codeInput.value = '';
-				logDisplay.classList.remove('is-corrupted');
-				refreshScrambles();
-				renderText();
-				syncWordClasses();
-				setStatus('Status: Awaiting input');
-			};
-
-			const fetchLog = async () => {
-				try {
-					const response = await fetch('log.html');
-					if (!response.ok) {
-						throw new Error(`Log fetch failed: ${response.status}`);
-					}
-					const raw = await response.text();
-					const parser = new DOMParser();
-					const doc = parser.parseFromString(raw, 'text/html');
-					const source = doc.querySelector('main') || doc.body;
-					const textContent = source ? source.textContent : raw;
-					initialiseTerminal(textContent.trim());
-				} catch (error) {
-					logDisplay.textContent = 'Error: Unable to access log payload.';
-					setStatus('Status: Retrieval failure', { isError: true });
-					console.error(error);
-				}
-			};
-
-			decryptButton.addEventListener('click', handleDecrypt);
-			fetchLog();
-		})();
-	</script>
 	<script type="text/javascript" src="assets/lcars.js"></script>
 	<div class="headtrim"> </div>
 	<div class="baseboard"> </div>
