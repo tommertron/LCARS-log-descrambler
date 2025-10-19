@@ -28,6 +28,17 @@ A single-page LCARS-styled terminal for Star Trek Adventures sessions. The inter
 - The layout and styling rely on the assets provided with `classic-standard.html`; please keep those files unchanged to preserve the LCARS look.
 - The decrypt logic lives in `lcars-terminal.html` and works entirely client-side.
 
+## LCARS Template License
+
+This project customises the LCARS Inspired Website Template provided by [TheLCARS.com](https://www.thelcars.com/license/). By cloning or using this repository you agree to the following non-commercial EULA terms from the template author:
+
+- The template and any derivative works remain subject to the original license; credit with a link to TheLCARS.com is required and provided in `lcars-terminal.html`.
+- Use is permitted for personal, non-commercial projects only. Redistribution, resale, or use to produce paid (or compensated) work for third parties is prohibited without written permission from the licensor.
+- Do not combine these assets with other templates without attribution, and do not hotlink to resources on TheLCARS.com.
+- The template (or derivatives) must not be used for illegal purposes.
+
+Please review the complete terms at [https://www.thelcars.com/license/](https://www.thelcars.com/license/).
+
 ## License
 
 Licensed under the MIT License. See [`LICENSE`](LICENSE).

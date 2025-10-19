@@ -446,8 +446,7 @@
 
 				</main>
 				<footer>
-					<!-- Your copyright information is only a suggestion and you can choose to delete it. -->
-			 		LCARS2.2
+					<p>LCARS Inspired Website Template by <a href="https://www.thelcars.com/license/">www.TheLCARS.com</a>, modified for personal use by Tommertron.</p>
 				</footer> 
 			</div>
 		</div>
@@ -630,10 +629,11 @@
 
 				refreshScrambles();
 				renderText();
+				syncWordClasses();
 				updateStatus();
 			};
 
-						const engageWipe = () => {
+			const engageWipe = () => {
 				wipeEngaged = true;
 				decryptButton.disabled = true;
 				codeInput.disabled = true;
@@ -669,6 +669,7 @@
 				logDisplay.classList.remove('is-corrupted');
 				refreshScrambles();
 				renderText();
+				syncWordClasses();
 				setStatus('Status: Awaiting input');
 			};
 
