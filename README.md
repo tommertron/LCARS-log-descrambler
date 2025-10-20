@@ -37,7 +37,7 @@ A single-page LCARS-styled terminal that supports the [Star Trek Adventures](htt
    ```
 2. Open the terminal in your browser: `http://localhost:9191/lcars-terminal.html`.
 3. Enter code phrases into the field and press **DECRYPT** to progressively restore the log.
-4. Select **Administrator Mode** to manage settings (default password: `ENGAGE`).
+4. Select **COMMAND OVERRIDE** to manage settings (default password: `ENGAGE`).
 ### Suggested Tabletop Flow
 
 - Use the terminal when you want the crew to interrogate a scrambled log for mission clues.

@@ -600,7 +600,11 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
   }
   saveConfig(config);
   saveState(state);
-  adminButton === null || adminButton === void 0 || adminButton.addEventListener('click', openAdmin);
+  adminButton === null || adminButton === void 0 || adminButton.addEventListener('click', function (event) {
+    event.preventDefault();
+    playBeep();
+    openAdmin();
+  });
   adminCloseButtons.forEach(function (button) {
     return button.addEventListener('click', closeAdmin);
   });

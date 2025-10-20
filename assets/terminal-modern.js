@@ -554,7 +554,11 @@
   saveConfig(config);
   saveState(state);
 
-  adminButton?.addEventListener('click', openAdmin);
+  adminButton?.addEventListener('click', (event) => {
+    event.preventDefault();
+    playBeep();
+    openAdmin();
+  });
   adminCloseButtons.forEach((button) => button.addEventListener('click', closeAdmin));
   adminModal?.addEventListener('click', (event) => {
     if (event.target === adminModal) {
