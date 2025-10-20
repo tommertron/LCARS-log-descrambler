@@ -69,6 +69,14 @@
   const DEFAULT_ATTEMPT_LIMIT = 3;
   const DEFAULT_ENTRY_ID = 'default';
 
+  const generateEntryId = () => {
+    if (typeof crypto === 'object' && crypto && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    const randomSegment = Math.floor(Math.random() * 1e6).toString(16).padStart(5, '0');
+    return `entry-${Date.now()}-${randomSegment}`;
+  };
+
   let tokens = [];
   let tokenWordIndexMap = [];
   let wordOriginals = [];
@@ -187,8 +195,13 @@
         lastUpdated: Date.now()
       };
       state.entries[entryId] = entry;
-      state.logOrder.push(entryId);
+      if (!state.logOrder.includes(entryId)) {
+        state.logOrder.push(entryId);
+      }
     } else {
+      if (!state.logOrder.includes(entryId)) {
+        state.logOrder.push(entryId);
+      }
       if (content && (entryId !== DEFAULT_ENTRY_ID || !entry.userModified)) {
         entry.content = content;
       }
@@ -648,6 +661,9 @@
 
   adminLogNewButton?.addEventListener('click', () => {
     adminLogIdInput.value = '';
+    if (adminLogSelect) {
+      adminLogSelect.value = '';
+    }
     adminLogTitle.value = '';
     adminLogContent.value = '';
     showAdminStatus('Ready to compose a new log entry.');
@@ -655,10 +671,10 @@
 
   adminLogForm?.addEventListener('submit', (event) => {
     event.preventDefault();
-    const existingId = adminLogIdInput.value || adminLogSelect?.value;
+    const existingId = adminLogIdInput.value.trim() || (adminLogSelect?.value?.trim() || '');
     const title = adminLogTitle.value.trim() || 'Untitled Log Entry';
     const content = adminLogContent.value;
-    const entryId = existingId || `entry-${Date.now()}`;
+    const entryId = existingId || generateEntryId();
     const entryRecord = ensureEntryState(state, entryId, content, title);
     entryRecord.userModified = true;
     entryRecord.content = content;
@@ -669,6 +685,7 @@
     entryRecord.wipeEngaged = false;
     entryRecord.lastUpdated = Date.now();
     state.currentEntryId = entryId;
+    currentEntryState = entryRecord;
     saveState(state);
     populateAdmin(state, config);
     initialiseTerminalForEntry(state, config, entryId);

@@ -14,12 +14,12 @@ function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) 
 function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
 function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 (function (_state$entries$DEFAUL) {
   var logDisplay = document.getElementById('log-display');
   if (!logDisplay) {
@@ -87,6 +87,13 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   var DEFAULT_PASSWORD = 'ENGAGE';
   var DEFAULT_ATTEMPT_LIMIT = 3;
   var DEFAULT_ENTRY_ID = 'default';
+  var generateEntryId = function generateEntryId() {
+    if ((typeof crypto === "undefined" ? "undefined" : _typeof(crypto)) === 'object' && crypto && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    var randomSegment = Math.floor(Math.random() * 1e6).toString(16).padStart(5, '0');
+    return "entry-".concat(Date.now(), "-").concat(randomSegment);
+  };
   var tokens = [];
   var tokenWordIndexMap = [];
   var wordOriginals = [];
@@ -202,8 +209,13 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
         lastUpdated: Date.now()
       };
       state.entries[entryId] = entry;
-      state.logOrder.push(entryId);
+      if (!state.logOrder.includes(entryId)) {
+        state.logOrder.push(entryId);
+      }
     } else {
+      if (!state.logOrder.includes(entryId)) {
+        state.logOrder.push(entryId);
+      }
       if (content && (entryId !== DEFAULT_ENTRY_ID || !entry.userModified)) {
         entry.content = content;
       }
@@ -695,16 +707,20 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
   });
   adminLogNewButton === null || adminLogNewButton === void 0 || adminLogNewButton.addEventListener('click', function () {
     adminLogIdInput.value = '';
+    if (adminLogSelect) {
+      adminLogSelect.value = '';
+    }
     adminLogTitle.value = '';
     adminLogContent.value = '';
     showAdminStatus('Ready to compose a new log entry.');
   });
   adminLogForm === null || adminLogForm === void 0 || adminLogForm.addEventListener('submit', function (event) {
+    var _adminLogSelect$value;
     event.preventDefault();
-    var existingId = adminLogIdInput.value || (adminLogSelect === null || adminLogSelect === void 0 ? void 0 : adminLogSelect.value);
+    var existingId = adminLogIdInput.value.trim() || (adminLogSelect === null || adminLogSelect === void 0 || (_adminLogSelect$value = adminLogSelect.value) === null || _adminLogSelect$value === void 0 ? void 0 : _adminLogSelect$value.trim()) || '';
     var title = adminLogTitle.value.trim() || 'Untitled Log Entry';
     var content = adminLogContent.value;
-    var entryId = existingId || "entry-".concat(Date.now());
+    var entryId = existingId || generateEntryId();
     var entryRecord = ensureEntryState(state, entryId, content, title);
     entryRecord.userModified = true;
     entryRecord.content = content;
@@ -715,6 +731,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     entryRecord.wipeEngaged = false;
     entryRecord.lastUpdated = Date.now();
     state.currentEntryId = entryId;
+    currentEntryState = entryRecord;
     saveState(state);
     populateAdmin(state, config);
     initialiseTerminalForEntry(state, config, entryId);
