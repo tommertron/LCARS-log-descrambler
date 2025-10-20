@@ -459,6 +459,13 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
       return;
     }
     adminModal.classList.remove('is-visible');
+    isAdmin = false;
+    if (adminDashboard) {
+      adminDashboard.classList.add('hidden');
+    }
+    if (adminLoginView) {
+      adminLoginView.classList.remove('hidden');
+    }
     adminPasswordInput.value = '';
     adminLoginError.classList.add('hidden');
     if (adminStatusMessage) {
