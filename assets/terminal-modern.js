@@ -17,6 +17,7 @@
   const adminLoginError = document.getElementById('admin-login-error');
   const adminStatusMessage = document.getElementById('admin-status-message');
   const adminCloseButtons = adminModal ? adminModal.querySelectorAll('.admin-close') : [];
+  const adminActiveLogDisplay = document.getElementById('admin-active-log-display');
   const adminAttemptsForm = document.getElementById('admin-attempts-form');
   const adminAttemptLimitInput = document.getElementById('admin-attempt-limit');
   const adminPasswordForm = document.getElementById('admin-password-form');
@@ -35,6 +36,7 @@
   const adminLogNewButton = document.getElementById('admin-log-new');
   const adminLogSetActiveButton = document.getElementById('admin-log-set-active');
   const adminLogDeleteButton = document.getElementById('admin-log-delete');
+  const adminResetDefaultsButton = document.getElementById('admin-reset-defaults');
   const audioBeep = document.getElementById('audio2');
 
   const playBeep = () => {
@@ -60,10 +62,10 @@
     state: 'lcars_terminal_state'
   };
   const DEFAULT_CODES = {
-    quarter: 'warpgrind',
-    half: 'phaserfury',
-    full: 'holobollocks',
-    wipe: 'sfstfu'
+    quarter: 'warp',
+    half: 'transporter',
+    full: 'phaser',
+    wipe: 'klingon'
   };
   const DEFAULT_PASSWORD = 'ENGAGE';
   const DEFAULT_ATTEMPT_LIMIT = 3;
@@ -492,7 +494,62 @@
     });
   };
 
+  const updateActiveLogDisplay = (state) => {
+    if (!adminActiveLogDisplay) {
+      return;
+    }
+    const activeEntry = state.entries[state.currentEntryId];
+    if (activeEntry) {
+      adminActiveLogDisplay.textContent = activeEntry.title || state.currentEntryId;
+      adminActiveLogDisplay.dataset.entryId = state.currentEntryId;
+    } else {
+      adminActiveLogDisplay.textContent = state.currentEntryId || 'Unassigned';
+      delete adminActiveLogDisplay.dataset.entryId;
+    }
+  };
+
+  const loadLogForm = (state, entryId) => {
+    const entry = state.entries[entryId];
+    if (!entry) {
+      adminLogIdInput.value = '';
+      adminLogTitle.value = '';
+      adminLogContent.value = '';
+      showAdminStatus('Selected log entry could not be found.', true);
+      return;
+    }
+    if (adminLogSelect) {
+      adminLogSelect.value = entryId;
+    }
+    adminLogIdInput.value = entryId;
+    adminLogTitle.value = entry.title || '';
+    adminLogContent.value = entry.content || '';
+    showAdminStatus('Log entry loaded for editing.');
+  };
+
+  const rebuildDefaultState = (state) => {
+    const freshState = {
+      entries: {},
+      logOrder: [],
+      currentEntryId: DEFAULT_ENTRY_ID
+    };
+    const baselineEntry = ensureEntryState(freshState, DEFAULT_ENTRY_ID, 'Default log unavailable.', 'Default Log');
+    baselineEntry.userModified = false;
+    baselineEntry.content = baselineEntry.content || 'Default log unavailable.';
+    baselineEntry.wordRevealed = [];
+    baselineEntry.usedCodes = createCodeUsage();
+    baselineEntry.failedAttempts = 0;
+    baselineEntry.wipeEngaged = false;
+    baselineEntry.lastUpdated = Date.now();
+    state.entries = freshState.entries;
+    state.logOrder = freshState.logOrder;
+    state.currentEntryId = DEFAULT_ENTRY_ID;
+    currentEntryState = baselineEntry;
+    saveState(state);
+  };
+
+
   const populateAdmin = (state, config) => {
+    updateActiveLogDisplay(state);
     adminAttemptLimitInput.value = config.attemptLimit;
     adminCodeQuarter.value = config.codes.quarter;
     adminCodeHalf.value = config.codes.half;
@@ -534,6 +591,7 @@
   const initialiseTerminalForEntry = (state, config, entryId) => {
     state.currentEntryId = entryId;
     const entry = ensureEntryState(state, entryId, state.entries[entryId]?.content || '', state.entries[entryId]?.title);
+    updateActiveLogDisplay(state);
     buildTokensForEntry(entry);
     refreshScrambles();
     renderText();
@@ -652,6 +710,28 @@
     showAdminStatus('Code phrases updated.');
   });
 
+  adminResetDefaultsButton?.addEventListener('click', async () => {
+    if (!window.confirm('Reset all settings and logs to their defaults? This cannot be undone.')) {
+      return;
+    }
+    playBeep();
+    try {
+      config.codes = { ...DEFAULT_CODES };
+      config.attemptLimit = DEFAULT_ATTEMPT_LIMIT;
+      config.passwordHash = hashPassword(DEFAULT_PASSWORD);
+      saveConfig(config);
+      rebuildDefaultState(state);
+      await fetchDefaultLog(state);
+      initialiseTerminalForEntry(state, config, DEFAULT_ENTRY_ID);
+      populateAdmin(state, config);
+      updateAttemptWarning(currentEntryState, config.attemptLimit);
+      showAdminStatus('All settings restored to defaults.');
+    } catch (error) {
+      console.error(error);
+      showAdminStatus('Unable to reset settings. See console for details.', true);
+    }
+  });
+
   adminLogSelect?.addEventListener('change', (event) => {
     const selectedId = event.target.value;
     if (!selectedId) {
@@ -702,8 +782,6 @@
       showAdminStatus('Select a log entry before setting it active.', true);
       return;
     }
-    state.currentEntryId = targetId;
-    saveState(state);
     initialiseTerminalForEntry(state, config, targetId);
     populateAdmin(state, config);
     showAdminStatus('Active log entry updated.');

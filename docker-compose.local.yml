@@ -1,0 +1,6 @@
+services:
+  lcars-terminal:
+    environment:
+      SKIP_CLONE: "1"
+    volumes:
+      - ./:/srv/app

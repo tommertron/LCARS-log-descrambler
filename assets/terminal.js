@@ -38,6 +38,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
   var adminLoginError = document.getElementById('admin-login-error');
   var adminStatusMessage = document.getElementById('admin-status-message');
   var adminCloseButtons = adminModal ? adminModal.querySelectorAll('.admin-close') : [];
+  var adminActiveLogDisplay = document.getElementById('admin-active-log-display');
   var adminAttemptsForm = document.getElementById('admin-attempts-form');
   var adminAttemptLimitInput = document.getElementById('admin-attempt-limit');
   var adminPasswordForm = document.getElementById('admin-password-form');
@@ -56,6 +57,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
   var adminLogNewButton = document.getElementById('admin-log-new');
   var adminLogSetActiveButton = document.getElementById('admin-log-set-active');
   var adminLogDeleteButton = document.getElementById('admin-log-delete');
+  var adminResetDefaultsButton = document.getElementById('admin-reset-defaults');
   var audioBeep = document.getElementById('audio2');
   var playBeep = function playBeep() {
     if (!audioBeep) {
@@ -79,10 +81,10 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
     state: 'lcars_terminal_state'
   };
   var DEFAULT_CODES = {
-    quarter: 'warpgrind',
-    half: 'phaserfury',
-    full: 'holobollocks',
-    wipe: 'sfstfu'
+    quarter: 'warp',
+    half: 'transporter',
+    full: 'phaser',
+    wipe: 'klingon'
   };
   var DEFAULT_PASSWORD = 'ENGAGE';
   var DEFAULT_ATTEMPT_LIMIT = 3;
@@ -513,7 +515,58 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
       adminLogSelect.appendChild(option);
     });
   };
+  var updateActiveLogDisplay = function updateActiveLogDisplay(state) {
+    if (!adminActiveLogDisplay) {
+      return;
+    }
+    var activeEntry = state.entries[state.currentEntryId];
+    if (activeEntry) {
+      adminActiveLogDisplay.textContent = activeEntry.title || state.currentEntryId;
+      adminActiveLogDisplay.dataset.entryId = state.currentEntryId;
+    } else {
+      adminActiveLogDisplay.textContent = state.currentEntryId || 'Unassigned';
+      delete adminActiveLogDisplay.dataset.entryId;
+    }
+  };
+  var loadLogForm = function loadLogForm(state, entryId) {
+    var entry = state.entries[entryId];
+    if (!entry) {
+      adminLogIdInput.value = '';
+      adminLogTitle.value = '';
+      adminLogContent.value = '';
+      showAdminStatus('Selected log entry could not be found.', true);
+      return;
+    }
+    if (adminLogSelect) {
+      adminLogSelect.value = entryId;
+    }
+    adminLogIdInput.value = entryId;
+    adminLogTitle.value = entry.title || '';
+    adminLogContent.value = entry.content || '';
+    showAdminStatus('Log entry loaded for editing.');
+  };
+  var rebuildDefaultState = function rebuildDefaultState(state) {
+    var freshState = {
+      entries: {},
+      logOrder: [],
+      currentEntryId: DEFAULT_ENTRY_ID
+    };
+    var baselineEntry = ensureEntryState(freshState, DEFAULT_ENTRY_ID, 'Default log unavailable.', 'Default Log');
+    baselineEntry.userModified = false;
+    baselineEntry.content = baselineEntry.content || 'Default log unavailable.';
+    baselineEntry.wordRevealed = [];
+    baselineEntry.usedCodes = createCodeUsage();
+    baselineEntry.failedAttempts = 0;
+    baselineEntry.wipeEngaged = false;
+    baselineEntry.lastUpdated = Date.now();
+    state.entries = freshState.entries;
+    state.logOrder = freshState.logOrder;
+    state.currentEntryId = DEFAULT_ENTRY_ID;
+    currentEntryState = baselineEntry;
+    saveState(state);
+  };
   var populateAdmin = function populateAdmin(state, config) {
+    updateActiveLogDisplay(state);
     adminAttemptLimitInput.value = config.attemptLimit;
     adminCodeQuarter.value = config.codes.quarter;
     adminCodeHalf.value = config.codes.half;
@@ -582,6 +635,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
     var _state$entries$entryI, _state$entries$entryI2;
     state.currentEntryId = entryId;
     var entry = ensureEntryState(state, entryId, ((_state$entries$entryI = state.entries[entryId]) === null || _state$entries$entryI === void 0 ? void 0 : _state$entries$entryI.content) || '', (_state$entries$entryI2 = state.entries[entryId]) === null || _state$entries$entryI2 === void 0 ? void 0 : _state$entries$entryI2.title);
+    updateActiveLogDisplay(state);
     buildTokensForEntry(entry);
     refreshScrambles();
     renderText();
@@ -699,6 +753,43 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
     saveState(state);
     showAdminStatus('Code phrases updated.');
   });
+  adminResetDefaultsButton === null || adminResetDefaultsButton === void 0 || adminResetDefaultsButton.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2() {
+    var _t2;
+    return _regenerator().w(function (_context2) {
+      while (1) switch (_context2.p = _context2.n) {
+        case 0:
+          if (window.confirm('Reset all settings and logs to their defaults? This cannot be undone.')) {
+            _context2.n = 1;
+            break;
+          }
+          return _context2.a(2);
+        case 1:
+          playBeep();
+          _context2.p = 2;
+          config.codes = _objectSpread({}, DEFAULT_CODES);
+          config.attemptLimit = DEFAULT_ATTEMPT_LIMIT;
+          config.passwordHash = hashPassword(DEFAULT_PASSWORD);
+          saveConfig(config);
+          rebuildDefaultState(state);
+          _context2.n = 3;
+          return fetchDefaultLog(state);
+        case 3:
+          initialiseTerminalForEntry(state, config, DEFAULT_ENTRY_ID);
+          populateAdmin(state, config);
+          updateAttemptWarning(currentEntryState, config.attemptLimit);
+          showAdminStatus('All settings restored to defaults.');
+          _context2.n = 5;
+          break;
+        case 4:
+          _context2.p = 4;
+          _t2 = _context2.v;
+          console.error(_t2);
+          showAdminStatus('Unable to reset settings. See console for details.', true);
+        case 5:
+          return _context2.a(2);
+      }
+    }, _callee2, null, [[2, 4]]);
+  })));
   adminLogSelect === null || adminLogSelect === void 0 || adminLogSelect.addEventListener('change', function (event) {
     var selectedId = event.target.value;
     if (!selectedId) {
@@ -747,8 +838,6 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
       showAdminStatus('Select a log entry before setting it active.', true);
       return;
     }
-    state.currentEntryId = targetId;
-    saveState(state);
     initialiseTerminalForEntry(state, config, targetId);
     populateAdmin(state, config);
     showAdminStatus('Active log entry updated.');
@@ -785,22 +874,22 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
     }
   });
   var bootstrap = /*#__PURE__*/function () {
-    var _ref5 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2() {
-      return _regenerator().w(function (_context2) {
-        while (1) switch (_context2.n) {
+    var _ref6 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3() {
+      return _regenerator().w(function (_context3) {
+        while (1) switch (_context3.n) {
           case 0:
-            _context2.n = 1;
+            _context3.n = 1;
             return fetchDefaultLog(state);
           case 1:
             initialiseTerminalForEntry(state, config, state.currentEntryId);
             updateAttemptWarning(currentEntryState, config.attemptLimit);
           case 2:
-            return _context2.a(2);
+            return _context3.a(2);
         }
-      }, _callee2);
+      }, _callee3);
     }));
     return function bootstrap() {
-      return _ref5.apply(this, arguments);
+      return _ref6.apply(this, arguments);
     };
   }();
   bootstrap();

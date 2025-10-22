@@ -150,6 +150,22 @@
 			gap: 0.75rem;
 			align-items: center;
 		}
+		.admin-active-log {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.5rem;
+			align-items: baseline;
+			margin-bottom: 0.75rem;
+			font-family: "Antonio", "Helvetica Neue", Arial, sans-serif;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+		}
+		.admin-active-log-label {
+			color: var(--meta-data-color);
+		}
+		.admin-active-log-value {
+			color: var(--space-white);
+		}
 		.admin-close {
 			margin-left: auto;
 		}
@@ -587,11 +603,11 @@
 						</div>
 					</form>
 				</div>
-				<div class="admin-section">
-					<h3>Code Phrases</h3>
-					<form id="admin-codes-form">
-						<div class="admin-field">
-							<label for="admin-code-quarter">25% Decryption</label>
+					<div class="admin-section">
+						<h3>Code Phrases</h3>
+						<form id="admin-codes-form">
+							<div class="admin-field">
+								<label for="admin-code-quarter">25% Decryption</label>
 							<input id="admin-code-quarter" type="text" required>
 						</div>
 						<div class="admin-field">
@@ -609,11 +625,20 @@
 						<div class="admin-actions">
 							<button type="submit" class="lcars-button button-gold">Save Code Phrases</button>
 						</div>
-					</form>
-				</div>
-				<div class="admin-section">
-					<h3>Log Entries</h3>
+						</form>
+					</div>
+					<div class="admin-section">
+						<h3>Reset Configuration</h3>
+						<p class="status-inline-warning">Restores default code phrases, guess limit, password, and clears custom log state.</p>
+						<button type="button" id="admin-reset-defaults" class="lcars-button button-red">Reset To Defaults</button>
+					</div>
+					<div class="admin-section">
+						<h3>Log Entries</h3>
 					<form id="admin-log-form">
+						<div class="admin-active-log">
+							<span class="admin-active-log-label">Currently Active Log:</span>
+							<span class="admin-active-log-value" id="admin-active-log-display">Default Log</span>
+						</div>
 						<input type="hidden" id="admin-log-id">
 						<div class="admin-field">
 							<label for="admin-log-select">Choose Entry</label>

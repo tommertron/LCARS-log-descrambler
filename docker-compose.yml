@@ -1,0 +1,9 @@
+services:
+  lcars-terminal:
+    build: .
+    ports:
+      - "9191:9191"
+    environment:
+      REPO_URL: https://github.com/tommertron/LCARS-log-descrambler.git
+      REPO_BRANCH: master
+    restart: unless-stopped
