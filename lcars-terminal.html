@@ -183,6 +183,52 @@
 				padding: 1.1rem;
 			}
 		}
+		.help-modal {
+			position: fixed;
+			inset: 0;
+			display: none;
+			align-items: center;
+			justify-content: center;
+			background: rgba(0, 0, 0, 0.68);
+			z-index: 1000;
+		}
+		.help-modal.is-visible {
+			display: flex;
+		}
+		.help-panel {
+			width: min(640px, 92vw);
+			max-height: 85vh;
+			overflow-y: auto;
+			background: rgba(8, 8, 20, 0.95);
+			border: var(--panel-border);
+			border-radius: 1rem;
+			padding: 1.5rem;
+			box-shadow: 0 0 24px rgba(0, 0, 0, 0.6);
+			color: var(--space-white);
+		}
+		.help-header {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.75rem;
+			align-items: center;
+			margin-bottom: 1rem;
+		}
+		.help-header h2 {
+			margin: 0;
+			letter-spacing: 0.12em;
+			text-transform: uppercase;
+			flex: 1;
+		}
+		.help-content p {
+			margin-bottom: 0.85rem;
+			line-height: 1.6;
+		}
+		.help-content ul {
+			margin: 0 0 1rem 1.25rem;
+			padding: 0;
+			line-height: 1.6;
+			list-style: disc;
+		}
 	</style>
 </head>
 <body>
@@ -486,7 +532,7 @@
 						-->
 						<button onclick="playSoundAndRedirect('audio2', '#')">01</button>
 						<button onclick="playSoundAndRedirect('audio2', '#')">02</button>
-						<button onclick="playSoundAndRedirect('audio2', '#')">03</button>
+						<button id="help-button" class="button-gold">HELP</button>
 						<button id="admin-button" class="button-blue">COMMAND OVERRIDE</button>
 					</nav>
 				</div>
@@ -628,6 +674,22 @@
 						</form>
 					</div>
 					<div class="admin-section">
+						<h3>Interface Options</h3>
+						<p class="status-inline-warning">Disable the Help button when you want the crew to discover the terminal without out-of-character guidance.</p>
+						<form id="admin-help-form">
+							<div class="admin-field">
+								<label for="admin-help-toggle">Help Button</label>
+								<select id="admin-help-toggle">
+									<option value="true">Enabled</option>
+									<option value="false">Disabled</option>
+								</select>
+							</div>
+							<div class="admin-actions">
+								<button type="submit" class="lcars-button button-gold">Update Help Button</button>
+							</div>
+						</form>
+					</div>
+					<div class="admin-section">
 						<h3>Reset Configuration</h3>
 						<p class="status-inline-warning">Restores default code phrases, guess limit, password, and clears custom log state.</p>
 						<button type="button" id="admin-reset-defaults" class="lcars-button button-red">Reset To Defaults</button>
@@ -662,6 +724,24 @@
 						</div>
 					</form>
 				</div>
+			</div>
+		</div>
+	</div>
+	<div id="help-modal" class="help-modal">
+		<div class="help-panel">
+			<div class="help-header">
+				<h2>LCARS Log Terminal Briefing</h2>
+				<button type="button" class="lcars-button button-red help-close">DISMISS</button>
+			</div>
+			<div class="help-content">
+				<p>This terminal simulates a scrambled Starfleet operations log. Provide players with authorised code phrases to progressively restore the record.</p>
+				<p><strong>Usage:</strong></p>
+				<ul>
+					<li>Enter a code phrase and engage <em>DECRYPT</em> to reveal the next portion of the log.</li>
+					<li>The terminal tracks progress between sessions—refreshing the browser will not reset the decrypted text.</li>
+					<li>Triggering the wipe code seals the log and prevents further recovery.</li>
+				</ul>
+				<p><strong>Facilitator tools:</strong> Select <em>COMMAND OVERRIDE</em> to adjust code phrases, change the log content, or reset the terminal. You can also disable this Help briefing from the Administrator controls if you want to preserve in-universe immersion.</p>
 			</div>
 		</div>
 	</div>

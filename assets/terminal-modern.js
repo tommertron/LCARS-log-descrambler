@@ -37,6 +37,11 @@
   const adminLogSetActiveButton = document.getElementById('admin-log-set-active');
   const adminLogDeleteButton = document.getElementById('admin-log-delete');
   const adminResetDefaultsButton = document.getElementById('admin-reset-defaults');
+  const adminHelpForm = document.getElementById('admin-help-form');
+  const adminHelpToggle = document.getElementById('admin-help-toggle');
+  const helpButton = document.getElementById('help-button');
+  const helpModal = document.getElementById('help-modal');
+  const helpCloseButtons = helpModal ? helpModal.querySelectorAll('.help-close') : [];
   const audioBeep = document.getElementById('audio2');
 
   const playBeep = () => {
@@ -138,7 +143,8 @@
     const config = {
       codes: normaliseCodes(stored.codes),
       attemptLimit: Number.isInteger(stored.attemptLimit) && stored.attemptLimit > 0 ? stored.attemptLimit : DEFAULT_ATTEMPT_LIMIT,
-      passwordHash: typeof stored.passwordHash === 'string' && stored.passwordHash.length > 0 ? stored.passwordHash : hashPassword(DEFAULT_PASSWORD)
+      passwordHash: typeof stored.passwordHash === 'string' && stored.passwordHash.length > 0 ? stored.passwordHash : hashPassword(DEFAULT_PASSWORD),
+      showHelp: stored.showHelp !== false
     };
     return config;
   };
@@ -465,6 +471,32 @@
     }
   };
 
+  const openHelp = () => {
+    if (!helpModal || !config.showHelp) {
+      return;
+    }
+    helpModal.classList.add('is-visible');
+  };
+
+  const closeHelp = () => {
+    if (!helpModal) {
+      return;
+    }
+    helpModal.classList.remove('is-visible');
+  };
+
+  const updateHelpVisibility = () => {
+    if (!helpButton) {
+      return;
+    }
+    if (config.showHelp) {
+      helpButton.classList.remove('hidden');
+    } else {
+      helpButton.classList.add('hidden');
+      closeHelp();
+    }
+  };
+
   const showAdminStatus = (message, isError = false) => {
     if (!adminStatusMessage) {
       return;
@@ -555,6 +587,9 @@
     adminCodeHalf.value = config.codes.half;
     adminCodeFull.value = config.codes.full;
     adminCodeWipe.value = config.codes.wipe;
+    if (adminHelpToggle) {
+      adminHelpToggle.value = config.showHelp ? 'true' : 'false';
+    }
     renderLogOptions(state);
     const entry = state.entries[state.currentEntryId];
     if (entry) {
@@ -611,6 +646,7 @@
   }
   saveConfig(config);
   saveState(state);
+  updateHelpVisibility();
 
   adminButton?.addEventListener('click', (event) => {
     event.preventDefault();
@@ -621,6 +657,21 @@
   adminModal?.addEventListener('click', (event) => {
     if (event.target === adminModal) {
       closeAdmin();
+    }
+  });
+
+  helpButton?.addEventListener('click', (event) => {
+    event.preventDefault();
+    if (!config.showHelp) {
+      return;
+    }
+    playBeep();
+    openHelp();
+  });
+  helpCloseButtons.forEach((button) => button.addEventListener('click', closeHelp));
+  helpModal?.addEventListener('click', (event) => {
+    if (event.target === helpModal) {
+      closeHelp();
     }
   });
 
@@ -710,6 +761,15 @@
     showAdminStatus('Code phrases updated.');
   });
 
+  adminHelpForm?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const nextValue = adminHelpToggle?.value === 'false' ? false : true;
+    config.showHelp = nextValue;
+    saveConfig(config);
+    updateHelpVisibility();
+    showAdminStatus(`Help button ${config.showHelp ? 'enabled' : 'disabled'}.`);
+  });
+
   adminResetDefaultsButton?.addEventListener('click', async () => {
     if (!window.confirm('Reset all settings and logs to their defaults? This cannot be undone.')) {
       return;
@@ -719,12 +779,14 @@
       config.codes = { ...DEFAULT_CODES };
       config.attemptLimit = DEFAULT_ATTEMPT_LIMIT;
       config.passwordHash = hashPassword(DEFAULT_PASSWORD);
+      config.showHelp = true;
       saveConfig(config);
       rebuildDefaultState(state);
       await fetchDefaultLog(state);
       initialiseTerminalForEntry(state, config, DEFAULT_ENTRY_ID);
       populateAdmin(state, config);
       updateAttemptWarning(currentEntryState, config.attemptLimit);
+      updateHelpVisibility();
       showAdminStatus('All settings restored to defaults.');
     } catch (error) {
       console.error(error);
@@ -818,6 +880,7 @@
     await fetchDefaultLog(state);
     initialiseTerminalForEntry(state, config, state.currentEntryId);
     updateAttemptWarning(currentEntryState, config.attemptLimit);
+    updateHelpVisibility();
   };
 
   bootstrap();

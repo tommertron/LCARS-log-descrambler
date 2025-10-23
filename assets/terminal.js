@@ -58,6 +58,11 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
   var adminLogSetActiveButton = document.getElementById('admin-log-set-active');
   var adminLogDeleteButton = document.getElementById('admin-log-delete');
   var adminResetDefaultsButton = document.getElementById('admin-reset-defaults');
+  var adminHelpForm = document.getElementById('admin-help-form');
+  var adminHelpToggle = document.getElementById('admin-help-toggle');
+  var helpButton = document.getElementById('help-button');
+  var helpModal = document.getElementById('help-modal');
+  var helpCloseButtons = helpModal ? helpModal.querySelectorAll('.help-close') : [];
   var audioBeep = document.getElementById('audio2');
   var playBeep = function playBeep() {
     if (!audioBeep) {
@@ -153,7 +158,8 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
     var config = {
       codes: normaliseCodes(stored.codes),
       attemptLimit: Number.isInteger(stored.attemptLimit) && stored.attemptLimit > 0 ? stored.attemptLimit : DEFAULT_ATTEMPT_LIMIT,
-      passwordHash: typeof stored.passwordHash === 'string' && stored.passwordHash.length > 0 ? stored.passwordHash : hashPassword(DEFAULT_PASSWORD)
+      passwordHash: typeof stored.passwordHash === 'string' && stored.passwordHash.length > 0 ? stored.passwordHash : hashPassword(DEFAULT_PASSWORD),
+      showHelp: stored.showHelp !== false
     };
     return config;
   };
@@ -487,6 +493,29 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
       adminStatusMessage.classList.add('hidden');
     }
   };
+  var openHelp = function openHelp() {
+    if (!helpModal || !config.showHelp) {
+      return;
+    }
+    helpModal.classList.add('is-visible');
+  };
+  var closeHelp = function closeHelp() {
+    if (!helpModal) {
+      return;
+    }
+    helpModal.classList.remove('is-visible');
+  };
+  var updateHelpVisibility = function updateHelpVisibility() {
+    if (!helpButton) {
+      return;
+    }
+    if (config.showHelp) {
+      helpButton.classList.remove('hidden');
+    } else {
+      helpButton.classList.add('hidden');
+      closeHelp();
+    }
+  };
   var showAdminStatus = function showAdminStatus(message) {
     var isError = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
     if (!adminStatusMessage) {
@@ -572,6 +601,9 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
     adminCodeHalf.value = config.codes.half;
     adminCodeFull.value = config.codes.full;
     adminCodeWipe.value = config.codes.wipe;
+    if (adminHelpToggle) {
+      adminHelpToggle.value = config.showHelp ? 'true' : 'false';
+    }
     renderLogOptions(state);
     var entry = state.entries[state.currentEntryId];
     if (entry) {
@@ -654,6 +686,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
   }
   saveConfig(config);
   saveState(state);
+  updateHelpVisibility();
   adminButton === null || adminButton === void 0 || adminButton.addEventListener('click', function (event) {
     event.preventDefault();
     playBeep();
@@ -665,6 +698,22 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
   adminModal === null || adminModal === void 0 || adminModal.addEventListener('click', function (event) {
     if (event.target === adminModal) {
       closeAdmin();
+    }
+  });
+  helpButton === null || helpButton === void 0 || helpButton.addEventListener('click', function (event) {
+    event.preventDefault();
+    if (!config.showHelp) {
+      return;
+    }
+    playBeep();
+    openHelp();
+  });
+  helpCloseButtons.forEach(function (button) {
+    return button.addEventListener('click', closeHelp);
+  });
+  helpModal === null || helpModal === void 0 || helpModal.addEventListener('click', function (event) {
+    if (event.target === helpModal) {
+      closeHelp();
     }
   });
   adminLoginForm === null || adminLoginForm === void 0 || adminLoginForm.addEventListener('submit', function (event) {
@@ -753,6 +802,14 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
     saveState(state);
     showAdminStatus('Code phrases updated.');
   });
+  adminHelpForm === null || adminHelpForm === void 0 || adminHelpForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+    var nextValue = (adminHelpToggle === null || adminHelpToggle === void 0 ? void 0 : adminHelpToggle.value) === 'false' ? false : true;
+    config.showHelp = nextValue;
+    saveConfig(config);
+    updateHelpVisibility();
+    showAdminStatus("Help button ".concat(config.showHelp ? 'enabled' : 'disabled', "."));
+  });
   adminResetDefaultsButton === null || adminResetDefaultsButton === void 0 || adminResetDefaultsButton.addEventListener('click', /*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2() {
     var _t2;
     return _regenerator().w(function (_context2) {
@@ -769,6 +826,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
           config.codes = _objectSpread({}, DEFAULT_CODES);
           config.attemptLimit = DEFAULT_ATTEMPT_LIMIT;
           config.passwordHash = hashPassword(DEFAULT_PASSWORD);
+          config.showHelp = true;
           saveConfig(config);
           rebuildDefaultState(state);
           _context2.n = 3;
@@ -777,6 +835,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
           initialiseTerminalForEntry(state, config, DEFAULT_ENTRY_ID);
           populateAdmin(state, config);
           updateAttemptWarning(currentEntryState, config.attemptLimit);
+          updateHelpVisibility();
           showAdminStatus('All settings restored to defaults.');
           _context2.n = 5;
           break;
@@ -883,6 +942,7 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
           case 1:
             initialiseTerminalForEntry(state, config, state.currentEntryId);
             updateAttemptWarning(currentEntryState, config.attemptLimit);
+            updateHelpVisibility();
           case 2:
             return _context3.a(2);
         }

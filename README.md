@@ -14,6 +14,7 @@ A single-page LCARS-styled terminal that supports the [Star Trek Adventures](htt
 - Wrong or re-used codes surface an error without revealing additional content and display the remaining attempts before a wipe.
 - The terminal remembers its decryption state via local storage and a session cookie, so manual refreshes do not reset progress.
 - Includes LCARS audio feedback on each action.
+- Optional in-terminal help briefing explains how to operate the terminal (toggleable via Administrator controls).
 - Administrator mode (default password `ENGAGE`) allows you to edit log entries, adjust code phrases, change the guess threshold, update the admin password, or reset everything back to the default configuration.
 ## Guidelines
 
