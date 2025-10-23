@@ -25,7 +25,14 @@ A single-page LCARS-styled terminal that supports the [Star Trek Adventures](htt
 
 ## Deployment
 
-- For simple hosting, place the project on any static web server (GitHub Pages, Netlify, Apache, etc.).
+### Quick Start (Hosted)
+
+- Open the live build at [https://lcarslog.tommertron.com](https://lcarslog.tommertron.com) and you can use the terminal immediately for your game.
+- This is the simplest option if you just need a ready-to-run descrambler without configuring your own hosting.
+
+### Advanced: Self-Hosting
+
+- For custom deployments, place the project on any static web server (GitHub Pages, Netlify, Apache, etc.).
 - If you change `assets/terminal-modern.js`, regenerate the bundle with `npm install` followed by `npm run build` before deploying.
 - Upload all files (including the `assets` directory and generated `assets/terminal.js`).
 
